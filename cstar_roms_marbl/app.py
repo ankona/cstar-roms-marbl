@@ -4,6 +4,7 @@ from cstar.applications.core import (
     ApplicationDefinition,
     RunnerRequest,
     RunnerResult,
+    TBlueprint,
     register_application,
 )
 from cstar.base.exceptions import CstarError
@@ -15,6 +16,9 @@ from cstar.roms import ROMSSimulation
 
 from cstar_roms_marbl.models import APP_NAME, RomsMarblBlueprint
 from cstar_roms_marbl.transforms import RomsMarblTimeSplitter
+
+if t.TYPE_CHECKING:
+    from cstar.entrypoint.config import JobConfig, ServiceConfiguration
 
 _APP_NAME_LONG: t.Literal["ROMS-MARBL simulation runner"] = (
     "ROMS-MARBL simulation runner"
@@ -95,7 +99,10 @@ class RomsMarblRunner(BlueprintRunner[RomsMarblBlueprint]):
     def _on_iteration_complete(self) -> None:
         """Perform post-processing after each iteration of the main event loop."""
         super()._on_iteration_complete()
-        if self.state.status == ExecutionStatus.COMPLETED:
+        if (
+            self.state.status == ExecutionStatus.COMPLETED
+            and self.simulation is not None
+        ):
             self.simulation.post_run()
         elif ExecutionStatus.is_terminal(self.state.status):
             msg = "Skipping simulation post-run; simulation did not complete."
