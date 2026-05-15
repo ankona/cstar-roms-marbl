@@ -1,36 +1,19 @@
-import asyncio
-import sys
 import typing as t
 
 from cstar.applications.core import (
     ApplicationDefinition,
-    RunnerRequest,
     RunnerResult,
     register_application,
 )
-from cstar.applications.roms_marbl.models import APP_NAME, RomsMarblBlueprint
-from cstar.applications.roms_marbl.transforms import RomsMarblTimeSplitter
 from cstar.base.exceptions import CstarError
 from cstar.base.utils import slugify
-from cstar.entrypoint.config import (
-    get_job_config,
-    get_service_config,
-)
-from cstar.entrypoint.runner import BlueprintRunner, create_parser
+from cstar.entrypoint.runner import BlueprintRunner
 from cstar.execution.handler import ExecutionHandler, ExecutionStatus
-from cstar.orchestration.models import (
-    Application,
-)
-from cstar.orchestration.serialization import register_representer, strenum_representer
-from cstar.orchestration.transforms import (
-    DirectiveConfig,
-    OverrideTransform,
-)
+from cstar.orchestration.transforms import OverrideTransform
 from cstar.roms import ROMSSimulation
 
-if t.TYPE_CHECKING:
-    from cstar.entrypoint.config import JobConfig, ServiceConfiguration
-
+from cstar_roms_marbl.models import APP_NAME, RomsMarblBlueprint
+from cstar_roms_marbl.transforms import RomsMarblTimeSplitter
 
 _APP_NAME_LONG: t.Literal["ROMS-MARBL simulation runner"] = (
     "ROMS-MARBL simulation runner"
@@ -40,39 +23,17 @@ _APP_NAME_LONG: t.Literal["ROMS-MARBL simulation runner"] = (
 class RomsMarblRunner(BlueprintRunner[RomsMarblBlueprint]):
     """Worker class to run c-star simulations."""
 
-    simulation: t.Final[ROMSSimulation]
+    simulation: ROMSSimulation
     """The simulation instance created from the blueprint."""
     _handler: ExecutionHandler | None = None
     """The execution handler for the simulation."""
 
-    def __init__(
-        self,
-        request: RunnerRequest[RomsMarblBlueprint],
-        service_cfg: "ServiceConfiguration",
-        job_cfg: "JobConfig",
-    ) -> None:
-        """Initialize the RomsMarblRunner with the supplied configuration.
-
-        Parameters
-        ----------
-        request: RunnerRequest[RomsMarblBlueprint]
-            A request containing information about the simulation to run
-
-        service_cfg: ServiceConfiguration
-            Configuration for modifying behavior of the service process.
-
-        job_cfg: JobConfig
-            Configuration for submitting jobs to an HPC, such as account ID,
-            walltime, job name, and priority.
-        """
-        super().__init__(request, service_cfg, job_cfg)
-
-        self.simulation = ROMSSimulation.from_blueprint(self.request.blueprint_uri)
-        self.simulation.name = slugify(self.simulation.name)
-
     @t.override
     def _on_start(self) -> None:
         super()._on_start()
+
+        self.simulation = ROMSSimulation.from_blueprint(self.request.blueprint_uri)
+        self.simulation.name = slugify(self.simulation.name)
 
         if not self.simulation:
             msg = "Simulation creation failed. Unable to execute simulation runner"
