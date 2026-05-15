@@ -6,7 +6,6 @@ from datetime import datetime
 from pathlib import Path
 
 from cstar.applications.core import Transform
-from cstar.applications.roms_marbl.models import RomsMarblBlueprint
 from cstar.base.exceptions import CstarExpectationFailed
 from cstar.base.utils import DEFAULT_OUTPUT_ROOT_NAME, deep_merge, slugify
 from cstar.orchestration.orchestration import LiveStep
@@ -26,6 +25,8 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+
+from cstar_roms_marbl.models import RomsMarblBlueprint
 
 
 class RomsMarblTimeSplitter(Transform[LiveStep]):
