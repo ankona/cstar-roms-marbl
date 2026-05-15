@@ -1,0 +1,124 @@
+[project]
+name = "cstar-roms-marbl"
+description = "Demonstration application for C-Star orchestration system."
+readme = "README.md"
+urls = { repository = "https://github.com/ankona/cstar-roms-marbl", homepage = "https://www.cworthy.org" }
+authors = [
+    { name = "Scott Eilerman", email = "scott.eilerman@cworthy.org" },
+    { name = "Chris McBride", email = "chris@cworthy.org" },
+]
+license = { text = "Apache-2.0" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Oceanography"
+]
+requires-python = ">=3.10"
+dynamic = ["version"]
+dependencies = [
+    "cstar-ocean",
+    "roms_tools[dask]>=3.4.0,<4",
+    "pytimeparse>=1.1.8",
+]
+keywords = ["C-star","MCDR", "CDR", "ocean carbon", "climate"]
+
+[project.optional-dependencies]
+dev = [
+    "coverage>=7.13",
+    "mypy>=1.16.1",
+    "pre-commit==3.8.0",
+    "pytest>=7.0",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.12.2",
+    "types-python-dateutil>=2.9.0",
+    "types-pytz>=2025.2.0",
+    "types-PyYAML>=6.0.12",
+    "types-requests>2.32.4",
+]
+docs = [
+    "nbsphinx",
+    "readthedocs-sphinx-ext",
+    "sphinx",
+    "sphinxcontrib-bibtex",
+    "sphinxcontrib-napoleon",
+    "sphinx-book-theme",
+    "sphinx-design",
+]
+
+[project.entry-points."cstar.applications"]
+roms_marbl = "cstar_roms_marbl.app:RomsMarblApplication"
+
+[build-system]
+requires = [
+    "setuptools>=61.0.0",
+    "wheel",
+    "setuptools_scm[toml]>=7.0",
+    "check-manifest"
+]
+
+[tool.setuptools_scm]
+fallback_version = "9999"
+
+# Configuration for mypy type checker
+[tool.mypy]
+ignore_missing_imports = true
+exclude = "properties|asv_bench|docs"
+
+# Configuration for ruff linter and formatter
+[tool.ruff]
+fix = true
+show-fixes = true
+line-length = 88
+
+[tool.ruff.lint]
+extend-select = ["I", "F", "E", "W", "D", "UP", "TCH"] #  "RUF", "UP"]
+ignore = [
+    # will fix eventually
+    "E501",
+    "D205",
+    "D102",
+    "D101",
+    "D400",
+    "D103",
+    "D106",
+    # maybe fix
+    "D100",
+    "D401",
+    "D104", # will this show up in the readthedocs?
+    # won't fix
+    "D105",
+    "D107", # if you're doing wacky init stuff, please document
+
+]#, "D205", "D102", "D100", "D401", "D101", "D105", "D103", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+
+[tool.pre-commit]
+config = ".pre-commit-config.yaml"
+
+[tool.setuptools.packages.find]
+exclude = ["cstar_roms_marbl.tests*", "docs*"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.pytest.ini_options]
+norecursedirs = [".tox", ".git", "__pycache__", ".#*", "*~"]
+log_cli_format = "%(asctime)s | %(levelname)s | %(name)s::%(funcName)s:%(lineno)d: %(message)s"
+log_cli_level = "INFO"
+asyncio_mode = "auto"
+
+
+# Use addopts to ignore specific files and directories
+addopts = [
+    "--ignore-glob=*~",
+    "--ignore-glob=.#*"
+]
